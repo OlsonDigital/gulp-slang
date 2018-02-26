@@ -20,6 +20,8 @@ function slang(opt) {
     var PORT = opt.port || 4502;
     var USER = opt.username || 'admin';
     var PASS = opt.password || 'admin';
+    var BASE = opt.base;
+    var DEST = opt.dest;
     var URL;
 
     // return stream to gulp
@@ -33,11 +35,20 @@ function slang(opt) {
             cb(new gutil.PluginError('gulp-slang', 'Streaming not supported'));
             return;
         }
-        // if jcr_root is in file system path, remove before setting destination
         var destPath = file.path;
-        if (path.dirname(destPath).indexOf('jcr_root') !== -1) {
+        // BASE will be removed from the destination path if is set and in file system path
+        if (BASE && path.dirname(destPath).indexOf(BASE) !== -1) {
+            destPath = destPath.substring(path.dirname(destPath)
+                .indexOf(BASE) + BASE.length);
+        // if jcr_root is in file system path, remove before setting destination
+        } else if (path.dirname(destPath).indexOf('jcr_root') !== -1) {
             destPath = destPath.substring(path.dirname(destPath)
                 .indexOf('jcr_root') + 9);
+        }
+
+        // DEST will be prepended to the destination path if is set
+        if (DEST) {
+            destPath = DEST + destPath;
         }
 
         // create full URL for curl path
